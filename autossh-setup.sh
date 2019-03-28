@@ -9,7 +9,7 @@ varxuser="<USER NAME>"
 ##### FUNCTIONS #####
 
 var1func(){
-read -p 'Clear current known hosts and Key-Pairs? (y|n): ' var1
+read -p $'\e[96mClear current known hosts and Key-Pairs? (y|n): \e[0m' var1
 if [[ $var1 == "y" ]]
 then
 	echo -e "\e[92mClearing current known hosts and Key-Pairs...\e[0m"
@@ -24,14 +24,14 @@ fi
 
 
 var2func(){
-read -p 'Generate & Copy Key-Pair to a server? (y|n): ' var2
+read -p $'\e[96mGenerate & Copy Key-Pair to a server? (y|n): \e[0m' var2
 
 if [[ $var2 == "y" ]]
 then
 	echo -e "\e[92mGenerating new Key-Pair...\e[0m"
 	echo -e "\tsudo ssh-keygen"	#actually a command
-	read -p 'Enter the Domain/IP of the server: ' var2server
-	read -p 'Enter the Username to the server: ' var2user
+	read -p $'\e[96mEnter the Domain/IP of the server: \e[0m' var2server
+	read -p $'\e[96mEnter the Username to the server: \e[0m' var2user
 	echo -e "\e[92mCopying Key-Pair to a server\e[0m"
 	echo -e "\tssh-copy-id $var2user@$var2server"	#actually a command
 	echo -e "\e[92mAdding Server to known_hosts...\e[0m"
@@ -41,6 +41,8 @@ then
 elif [[ $var2 == "n" ]]
 then
 	echo -e "\e[91mNot Copying Key-Pair to a server\e[0m"
+	echo ""
+	echo -e "\e[91m\e[1mNOTICE:\e[0m \e[91mYou will need to manually enter a server and user in the finished script\e[0m"
 else
 	var2func
 fi
@@ -48,7 +50,7 @@ fi
 
 
 var4func(){
-read -p "Enable script at system startup? (y|n): " var4
+read -p $'\e[96mEnable script at system startup? (y|n): \e[0m' var4
 if [[ $var4 == "y" ]]
 then
 	echo -e "\e[92mEnabling script at system startup...\e[0m"
@@ -89,8 +91,8 @@ fi
 
 echo ""
 ### Finishing touches ###
-read -p 'Custom ssh command, if needed (e.g. "-R 443:localhost:80") to be used with autossh: ' var3custom
-read -p 'Name of the to be created script (autossh-<stuff-you-enter>.service): ' var3name
+read -p $'\e[96mCustom ssh command to be used with autossh, if needed (e.g. "-R 443:localhost:80") : \e[0m' var3custom
+read -p $'\e[96mName of the created script (e.g. Input "443-80" results in "autossh-443-80.service"): \e[0m' var3name
 echo -e "\e[92mSetting up scipt in /etc/systemd/system/autossh-"$var3name".service\e[0m"
 echo "[Unit]
 Description=Opens SSH Tunnel to "$varxserver"
