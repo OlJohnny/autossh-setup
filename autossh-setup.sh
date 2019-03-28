@@ -13,7 +13,7 @@ read -p $'\e[96mClear current known hosts and Key-Pairs? (y|n): \e[0m' var1
 if [[ $var1 == "y" ]]
 then
 	echo -e "\e[92mClearing current known hosts and Key-Pairs...\e[0m"
-	echo -e "\tsudo rm -rf /root/.ssh"	#actually a command
+	sudo rm -rf /root/.ssh
 elif [[ $var1 == "n" ]]
 then
 	echo -e "\e[91mNot clearing current known hosts and Key-Pairs\e[0m"
@@ -28,14 +28,14 @@ read -p $'\e[96mGenerate & Copy Key-Pair to a server? (y|n): \e[0m' var2
 
 if [[ $var2 == "y" ]]
 then
-	echo -e "\e[92mGenerating new Key-Pair...\e[0m"
-	echo -e "\tsudo ssh-keygen"	#actually a command
+	echo -e "\e[92mGenerating new Key-Pair (Hit Enter for default values, recommended)...\e[0m"
+	sudo ssh-keygen	-f /root/.ssh/autossh_id_rsa #actually a command
 	read -p $'\e[96mEnter the Domain/IP of the server: \e[0m' var2server
 	read -p $'\e[96mEnter the Username to the server: \e[0m' var2user
-	echo -e "\e[92mCopying Key-Pair to a server\e[0m"
-	echo -e "\tssh-copy-id $var2user@$var2server"	#actually a command
+	echo -e "\e[92mCopying Key-Pair to a server...\e[0m"
+	sudo ssh-copy-id -i /root/.ssh/autossh_id_rsa $var2user@$var2server	#actually a command
 	echo -e "\e[92mAdding Server to known_hosts...\e[0m"
-	echo -e "\tssh-keyscan -H $var2server >> ~/.ssh/known_hosts"	#actually a command
+	sudo ssh-keyscan -H $var2server >> ~/.ssh/known_hosts	#actually a command
 	varxserver=$var2server
 	varxuser=$var2user
 elif [[ $var2 == "n" ]]
@@ -54,7 +54,7 @@ read -p $'\e[96mEnable script at system startup? (y|n): \e[0m' var4
 if [[ $var4 == "y" ]]
 then
 	echo -e "\e[92mEnabling script at system startup...\e[0m"
-	echo -e "\tsudo systemctl enable autossh-$var3name.service"	#actually a command
+	sudo systemctl enable autossh-$var3name.service	#actually a command
 elif [[ $var4 == "n" ]]
 then
 	echo -e "\e[91mNot Enabling script at system startup\e[0m"
@@ -83,7 +83,7 @@ echo "Checking if autossh is installed..."
 if [ $(dpkg-query -W -f='${Status}' autossh 2>/dev/null | grep -c "ok installed") -eq 0 ];
 then
 	echo -e "\e[92mInstalling autossh...\e[0m"
-	echo -e "\tsudo apt-get --yes install autossh"	#actually a command
+	sudo apt-get --yes install autossh	#actually a command
 else
 	echo -e "\e[92mPackage autossh is already installed\e[0m"
 fi
@@ -93,25 +93,25 @@ echo ""
 ### Finishing touches ###
 read -p $'\e[96mCustom ssh command to be used with autossh, if needed (e.g. "-R 443:localhost:80") : \e[0m' var3custom
 read -p $'\e[96mName of the created script (e.g. Input "443-80" results in "autossh-443-80.service"): \e[0m' var3name
-echo -e "\e[92mSetting up scipt in /etc/systemd/system/autossh-"$var3name".service\e[0m"
+echo -e "\e[92mSetting up scipt in /etc/systemd/system/autossh-"$var3name".service...\e[0m"
 echo "[Unit]
 Description=Opens SSH Tunnel to "$varxserver"
 After=network.target
 
 [Service]
 Environment=\"AUTOSSH_GATETIME=0\"
-ExecStart=/usr/bin/autossh -M 0 -o \"ServerAliveInterval 30\" -o \"ServerAliveCountMax 3\" -N "$var3custom" "$varxuser"@"$varxserver" -p 22 -i /root/.ssh/id_rsa
+ExecStart=/usr/bin/autossh -M 0 -o \"ServerAliveInterval 30\" -o \"ServerAliveCountMax 3\" -N "$var3custom" "$varxuser"@"$varxserver" -p 22 -i /root/.ssh/autossh_id_rsa
 
 [Install]
-WantedBy=multi-user.target" #> /etc/systemd/system/autossh-$var3name.service
+WantedBy=multi-user.target" > /etc/systemd/system/autossh-$var3name.service
 
 
 echo -e ""
 ### Starting script ###
 echo -e "\e[92mStarting script...\e[0m"
-echo -e "\tsudo systemctl daemon-reload"	#actually a command
-echo -e "\tsudo service autossh-$var3name start"	#actually a command
-echo -e "\tsudo service autossh-$var3name status"	#actually a command
+sudo systemctl daemon-reload	#actually a command
+sudo service autossh-$var3name start	#actually a command
+sudo service autossh-$var3name status	#actually a command
 
 
 echo ""
