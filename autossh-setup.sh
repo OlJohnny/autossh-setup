@@ -34,18 +34,19 @@ then
 	read -p $'\e[96mEnter the Username to the server: \e[0m' var2user
 	echo -e "\e[92mCopying Key-Pair to a server...\e[0m"
 	sudo ssh-copy-id -i /root/.ssh/autossh_id_rsa $var2user@$var2server	#actually a command
-	echo -e "\e[92mAdding Server to known_hosts...\e[0m"
-	sudo ssh-keyscan -H $var2server >> ~/.ssh/known_hosts	#actually a command
-	varxserver=$var2server
-	varxuser=$var2user
 elif [[ $var2 == "n" ]]
 then
 	echo -e "\e[91mNot Copying Key-Pair to a server\e[0m"
 	echo ""
-	echo -e "\e[91m\e[1mNOTICE:\e[0m \e[91mYou will need to manually enter a server and user in the finished script\e[0m"
+	read -p $'\e[96mEnter the Domain/IP of the server to connect to: \e[0m' var2server
+	read -p $'\e[96mEnter the Username to the server to connect to: \e[0m' var2user
 else
 	var2func
 fi
+echo -e "\e[92mAdding Server to known_hosts...\e[0m"
+sudo ssh-keyscan -H $var2server >> ~/.ssh/known_hosts	#actually a command
+varxserver=$var2server
+varxuser=$var2user
 }
 
 
