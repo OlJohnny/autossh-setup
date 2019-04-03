@@ -1,5 +1,12 @@
 #!/bin/bash
 
+##### check for root privilges #####
+if [ "$EUID" -ne 0 ]
+then
+  echo -e "\e[91mPlease run as root.\e[39m Root privileges are needed to execute ssh commands."
+  exit
+fi
+
 ##### GLOBAL VARIABLES #####
 varxserver="<SERVER NAME>"
 varxuser="<USER NAME>"
