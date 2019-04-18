@@ -42,7 +42,7 @@ then
 	read -p $'\e[96mEnter the Username to the server: \e[0m' var2user
 	read -p $'\e[96mEnter the SSH port to the server: \e[0m' var2port
 	echo -e "\e[92mCopying Key-Pair to a server...\e[0m"
-	ssh-copy-id -i /root/.ssh/autossh_id_rsa $var2user@$var2server
+	ssh-copy-id -i /root/.ssh/autossh_id_rsa -p $var2port $var2user@$var2server
 	echo -e "\e[92mAdding Server to known_hosts...\e[0m"
 	ssh-keyscan -H $var2server >> ~/.ssh/known_hosts
 elif [[ $var2 == "n" ]]
@@ -51,6 +51,7 @@ then
 	echo ""
 	read -p $'\e[96mEnter the Domain/IP of the server to connect to: \e[0m' var2server
 	read -p $'\e[96mEnter the Username to the server to connect to: \e[0m' var2user
+	read -p $'\e[96mEnter the SSH port to the server: \e[0m' var2port
 else
 	var2func
 fi
