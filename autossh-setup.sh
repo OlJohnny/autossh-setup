@@ -18,7 +18,7 @@ varxport="<SSH PORT>"
 ##### FUNCTIONS #####
 ### loop question: clear known hosts ###
 _var1func(){
-read --prompt $'\e[96mClear current known hosts and Key-Pairs? (y|n): \e[0m' var1
+read -p $'\e[96mClear current known hosts and Key-Pairs? (y|n): \e[0m' var1
 if [[ "${var1}" == "y" ]]
 then
 	echo -e "\e[92mClearing current known hosts and Key-Pairs...\e[0m"
@@ -34,14 +34,14 @@ fi
 
 ### loop question: key-pair generation and copying ###
 _var2func(){
-read --prompt $'\e[96mGenerate & Copy Key-Pair to a server? (y|n): \e[0m' var2
+read -p $'\e[96mGenerate & Copy Key-Pair to a server? (y|n): \e[0m' var2
 if [[ "${var2}" == "y" ]]
 then
 	echo -e "\e[92mGenerating new Key-Pair (Hit Enter for default values, recommended)...\e[0m"
 	ssh-keygen -f /root/.ssh/autossh_id_rsa
-	read --prompt $'\e[96mEnter the Domain/IP of the server: \e[0m' var2server
-	read --prompt $'\e[96mEnter the Username to the server: \e[0m' var2user
-	read --prompt $'\e[96mEnter the SSH port to the server: \e[0m' var2port
+	read -p $'\e[96mEnter the Domain/IP of the server: \e[0m' var2server
+	read -p $'\e[96mEnter the Username to the server: \e[0m' var2user
+	read -p $'\e[96mEnter the SSH port to the server: \e[0m' var2port
 	echo -e "\e[92mCopying Key-Pair to a server...\e[0m"
 	ssh-copy-id -i /root/.ssh/autossh_id_rsa -p "${var2port}" "${var2user}"@"${var2server}"
 	echo -e "\e[92mAdding Server to known_hosts...\e[0m"
@@ -49,9 +49,9 @@ then
 elif [[ "${var2}" == "n" ]]
 then
 	echo -e "\e[91mNot Copying Key-Pair to a server\e[0m\n"
-	read --prompt $'\e[96mEnter the Domain/IP of the server to connect to: \e[0m' var2server
-	read --prompt $'\e[96mEnter the Username to the server to connect to: \e[0m' var2user
-	read --prompt $'\e[96mEnter the SSH port to the server: \e[0m' var2port
+	read -p $'\e[96mEnter the Domain/IP of the server to connect to: \e[0m' var2server
+	read -p $'\e[96mEnter the Username to the server to connect to: \e[0m' var2user
+	read -p $'\e[96mEnter the SSH port to the server: \e[0m' var2port
 else
 	_var2func
 fi
@@ -63,12 +63,12 @@ varxport="${var2port}"
 
 ### install autossh function ###
 _var3func(){
-read --prompt $'\e[96mDo you want to install autossh? (Errors can occur, when files are in the wrong format) (y|n): \e[0m' var1
-if [[ "${var1}" -eq "y" ]]
+read -p $'\e[96mDo you want to install autossh? (Errors can occur, when files are in the wrong format) (y|n): \e[0m' var1
+if [[ "${var1}" == "y" ]]
 then
 	echo -e "\e[92mInstalling autossh...\e[0m"
 	apt-get --yes install autossh
-elif [[ "${var1}" -eq "n" ]]
+elif [[ "${var1}" == "n" ]]
 then
 	echo -e "\e[91mPackage is needed to complete the run of this script.\e[0m"
 	echo "Exiting..."
@@ -81,7 +81,7 @@ fi
 
 ### loop question: enable at system startup ###
 _var4func(){
-read --prompt $'\e[96mEnable script at system startup? (y|n): \e[0m' var4
+read -p $'\e[96mEnable script at system startup? (y|n): \e[0m' var4
 if [[ "${var4}" == "y" ]]
 then
 	echo -e "\e[92mEnabling script at system startup...\e[0m"
@@ -98,7 +98,7 @@ fi
 
 ##### PREPARATION #####
 ### check for root privilges ###
-if [[ "${EUID}" -ne 0 ]]
+if [[ "${EUID}" != 0 ]]
 then
   echo -e "\e[91mPlease run as root.\e[39m Root privileges are needed to move and delete files"
   exit
@@ -108,7 +108,7 @@ fi
 ### install autossh ###
 echo "Checking if autossh is installed..."
 
-if [[ $(dpkg-query --show --showformat='${Status}' autossh 2>/dev/null | grep --count "ok installed") -eq 0 ]];
+if [[ $(dpkg-query --show --showformat='${Status}' autossh 2>/dev/null | grep --count "ok installed") == 0 ]];
 then
 	_var3func
 else
@@ -129,8 +129,8 @@ _var2func
 
 
 ### Finishing touches ###
-read --prompt $'\n\e[96mCustom ssh command to be used with autossh, if needed (e.g. "-R 443:localhost:80") : \e[0m' var3custom
-read --prompt $'\e[96mName of the created script (e.g. Input "443-80" results in "autossh-443-80.service"): \e[0m' var3name
+read -p $'\n\e[96mCustom ssh command to be used with autossh, if needed (e.g. "-R 443:localhost:80") : \e[0m' var3custom
+read -p $'\e[96mName of the created script (e.g. Input "443-80" results in "autossh-443-80.service"): \e[0m' var3name
 echo -e "\e[92mSetting up scipt in /etc/systemd/system/autossh-"${var3name}".service...\e[0m"
 echo "[Unit]
 Description=Opens SSH Tunnel to "${varxserver}"
