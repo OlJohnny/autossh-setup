@@ -37,15 +37,15 @@ _var2func(){
 read -p $'\e[96mGenerate & Copy Key-Pair to a server? (y|n): \e[0m' var2
 if [[ "${var2}" == "y" ]]
 then
-	echo -e "\e[92mGenerating new Key-Pair (Hit Enter for default values, recommended)...\e[0m"
 	read -p $'\e[96mEnter the Domain/IP of the server: \e[0m' var2server
 	read -p $'\e[96mEnter the Username to the server: \e[0m' var2user
 	read -p $'\e[96mEnter the SSH port to the server: \e[0m' var2port
 	# generate key pair with: ECDSA, 384 bit and "Username@Server" as comment
 	ssh-keygen -f /root/.ssh/autossh_id_ecdsa -t ecdsa -b 384 -C "${var2user}"@"${var2server}"
+	echo -e "\e[92mGenerating new Key-Pair (Hit Enter for default values, recommended)...\e[0m"
 	echo -e "\e[92mCopying Key-Pair to a server...\e[0m"
 	# create ".ssh" in your home directory to prevent mktemp errors
-	mkdir $(pwd)/.ssh
+	mkdir "${HOME}"/.ssh
 	# copy key to given server
 	ssh-copy-id -i /root/.ssh/autossh_id_ecdsa -p "${var2port}" "${var2user}"@"${var2server}"
 elif [[ "${var2}" == "n" ]]
