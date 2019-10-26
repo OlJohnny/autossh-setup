@@ -140,7 +140,7 @@ After=network.target
 
 [Service]
 Environment=\"AUTOSSH_GATETIME=0\"
-ExecStart=/usr/bin/autossh -M 0 -o \"ServerAliveInterval 30\" -o \"ServerAliveCountMax 3\" -N "${var3custom}" "${varxuser}"@"${varxserver}" -p "${varxport}" -i /root/.ssh/autossh_id_rsa
+ExecStart=/usr/bin/autossh -M 0 -o \"ServerAliveInterval 30\" -o \"ServerAliveCountMax 3\" -N "${var3custom}" "${varxuser}"@"${varxserver}" -p "${varxport}" -i /root/.ssh/autossh_id_ecdsa
 
 [Install]
 WantedBy=multi-user.target" > /etc/systemd/system/autossh-"${var3name}".service
