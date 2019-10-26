@@ -38,14 +38,16 @@ read -p $'\e[96mGenerate & Copy Key-Pair to a server? (y|n): \e[0m' var2
 if [[ "${var2}" == "y" ]]
 then
 	echo -e "\e[92mGenerating new Key-Pair (Hit Enter for default values, recommended)...\e[0m"
-	ssh-keygen -f /root/.ssh/autossh_id_rsa
 	read -p $'\e[96mEnter the Domain/IP of the server: \e[0m' var2server
 	read -p $'\e[96mEnter the Username to the server: \e[0m' var2user
 	read -p $'\e[96mEnter the SSH port to the server: \e[0m' var2port
+	# generate key pair with: ECDSA, 384 bit and "Username@Server" as comment
+	ssh-keygen -f /root/.ssh/autossh_id_ecdsa -t ecdsa -b 384 -C "${var2user}"@"${var2server}"
 	echo -e "\e[92mCopying Key-Pair to a server...\e[0m"
-	ssh-copy-id -i /root/.ssh/autossh_id_rsa -p "${var2port}" "${var2user}"@"${var2server}"
-	echo -e "\e[92mAdding Server to known_hosts...\e[0m"
-	ssh-keyscan -H "${var2server}" >> ~/.ssh/known_hosts
+	# create ".ssh" in your home directory to prevent mktemp errors
+	mkdir $(pwd)/.ssh
+	# copy key to given server
+	ssh-copy-id -i /root/.ssh/autossh_id_ecdsa -p "${var2port}" "${var2user}"@"${var2server}"
 elif [[ "${var2}" == "n" ]]
 then
 	echo -e "\e[91mNot Copying Key-Pair to a server\e[0m\n"
@@ -129,8 +131,8 @@ _var2func
 
 
 ### Finishing touches ###
-read -p $'\n\e[96mCustom ssh command to be used with autossh, if needed (e.g. "-R 443:localhost:80") : \e[0m' var3custom
-read -p $'\e[96mName of the created script (e.g. Input "443-80" results in "autossh-443-80.service"): \e[0m' var3name
+read -p $'\n\e[96mCustom ssh command to be used with autossh, if needed (e.g. "-R 8870:localhost:80") : \e[0m' var3custom
+read -p $'\e[96mName of the created script (e.g. Input "cloud" results in "autossh-cloud.service"): \e[0m' var3name
 echo -e "\e[92mSetting up scipt in /etc/systemd/system/autossh-"${var3name}".service...\e[0m"
 echo "[Unit]
 Description=Opens SSH Tunnel to "${varxserver}"
@@ -145,12 +147,13 @@ WantedBy=multi-user.target" > /etc/systemd/system/autossh-"${var3name}".service
 
 
 ### Adding ServerAliveInterval to config ###
-echo "Adding ServerAliveInterval to ssh config..."
+echo -e "\e[96mAdding ServerAliveInterval to ssh config...\e[0m"
 (cat /etc/ssh/ssh_config | grep "^ *ServerAliveInterval [0-9]*$" || echo "
 ### AUTO GENERATED CONFIG ADDITION BY autossh-setup.sh
 ServerAliveInterval 120" >> /etc/ssh/ssh_config)
 echo -e "\e[92mServerAliveInterval was added to ssh config\e[0m"
-service ssh reload
+echo -e "\e[96mRestarting ssh daemon...\e[0m"
+service sshd reload
 
 
 ### Starting script ###
