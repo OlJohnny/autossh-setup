@@ -154,7 +154,7 @@ ServerAliveInterval 40
 ServerAliveCountMax 5" >> /etc/ssh/ssh_config)
 echo -e "\e[92mServerAliveInterval was added to ssh config\e[0m"
 echo -e "\e[96mRestarting ssh daemon...\e[0m"
-service sshd reload
+service ssh reload
 
 
 ### Starting script ###
