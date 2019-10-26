@@ -150,7 +150,8 @@ WantedBy=multi-user.target" > /etc/systemd/system/autossh-"${var3name}".service
 echo -e "\e[96mAdding ServerAliveInterval to ssh config...\e[0m"
 (cat /etc/ssh/ssh_config | grep "^ *ServerAliveInterval [0-9]*$" || echo "
 ### AUTO GENERATED CONFIG ADDITION BY autossh-setup.sh
-ServerAliveInterval 120" >> /etc/ssh/ssh_config)
+ServerAliveInterval 40
+ServerAliveCountMax 5" >> /etc/ssh/ssh_config)
 echo -e "\e[92mServerAliveInterval was added to ssh config\e[0m"
 echo -e "\e[96mRestarting ssh daemon...\e[0m"
 service sshd reload
