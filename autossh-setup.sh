@@ -45,7 +45,7 @@ then
 	echo -e "\e[92mGenerating new Key-Pair (Hit Enter for default values, recommended)...\e[0m"
 	echo -e "\e[92mCopying Key-Pair to a server...\e[0m"
 	# create ".ssh" in your home directory to prevent mktemp errors
-	mkdir "${HOME}"/.ssh
+	mkdir --parents "${HOME}"/.ssh
 	# copy key to given server
 	ssh-copy-id -i /root/.ssh/autossh_id_ecdsa -p "${var2port}" "${var2user}"@"${var2server}"
 elif [[ "${var2}" == "n" ]]
@@ -154,7 +154,7 @@ ServerAliveInterval 40
 ServerAliveCountMax 5" >> /etc/ssh/ssh_config)
 echo -e "\e[92mServerAliveInterval was added to ssh config\e[0m"
 echo -e "\e[96mRestarting ssh daemon...\e[0m"
-service ssh reload
+(service ssh reload || :)
 
 
 ### Starting script ###
