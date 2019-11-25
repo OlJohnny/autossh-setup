@@ -9,9 +9,9 @@ set -o nounset
 
 
 ##### GLOBAL VARIABLES #####
-varxserver="<SERVER NAME>"
-varxuser="<USER NAME>"
-varxport="<SSH PORT>"
+autossh_server_ip="<SERVER NAME>"
+autossh_server_user="<USER NAME>"
+autossh_server_port="<SSH PORT>"
 
 
 
@@ -34,41 +34,33 @@ fi
 
 ### loop question: key-pair generation and copying ###
 _var2func(){
-read -p $'\e[96mGenerate & Copy Key-Pair to a server? (y|n): \e[0m' var2
+read -p $'\e[96mGenerate & Copy a new Key-Pair to a server? (y|n): \e[0m' var2
 if [[ "${var2}" == "y" ]]
 then
-	read -p $'\e[96mEnter the Domain/IP of the server: \e[0m' var2server
-	read -p $'\e[96mEnter the Username to the server: \e[0m' var2user
-	read -p $'\e[96mEnter the SSH port to the server: \e[0m' var2port
 	# generate key pair with: ECDSA, 384 bit and "Username@Server" as comment
-	ssh-keygen -f /root/.ssh/autossh_id_ecdsa -t ecdsa -b 384 -C "${var2user}"@"${var2server}"
+	ssh-keygen -f /root/.ssh/autossh_id_ecdsa -t ecdsa -b 384 -C "${autossh_server_user}"@"${autossh_server_ip}"
 	echo -e "\e[92mGenerating new Key-Pair (Hit Enter for default values, recommended)...\e[0m"
 	echo -e "\e[92mCopying Key-Pair to a server...\e[0m"
 	# create ".ssh" in your home directory to prevent mktemp errors
 	mkdir --parents "${HOME}"/.ssh
 	# copy key to given server
-	ssh-copy-id -i /root/.ssh/autossh_id_ecdsa -p "${var2port}" "${var2user}"@"${var2server}"
+	ssh-copy-id -i /root/.ssh/autossh_id_ecdsa -p "${autossh_server_port}" "${autossh_server_user}"@"${autossh_server_ip}"
 elif [[ "${var2}" == "n" ]]
 then
-	echo -e "\e[91mNot Copying Key-Pair to a server\e[0m\n"
-	read -p $'\e[96mEnter the Domain/IP of the server to connect to: \e[0m' var2server
-	read -p $'\e[96mEnter the Username to the server to connect to: \e[0m' var2user
-	read -p $'\e[96mEnter the SSH port to the server: \e[0m' var2port
+	echo -e "\e[91mNot Copying Key-Pair to a server\e[0m"
 else
 	_var2func
 fi
-varxserver="${var2server}"
-varxuser="${var2user}"
-varxport="${var2port}"
 }
 
 
-### install autossh function ###
+### loop question: install autossh ###
 _var3func(){
 read -p $'\e[96mDo you want to install autossh? (Errors can occur, when files are in the wrong format) (y|n): \e[0m' var1
 if [[ "${var1}" == "y" ]]
 then
 	echo -e "\e[92mInstalling autossh...\e[0m"
+	apt-get update
 	apt-get --yes install autossh
 elif [[ "${var1}" == "n" ]]
 then
@@ -80,14 +72,13 @@ else
 fi
 }
 
-
 ### loop question: enable at system startup ###
 _var4func(){
 read -p $'\e[96mEnable script at system startup? (y|n): \e[0m' var4
 if [[ "${var4}" == "y" ]]
 then
 	echo -e "\e[92mEnabling script at system startup...\e[0m"
-	systemctl enable autossh-"${var3name}".service
+	systemctl enable autossh-"${autossh_service_name}".service
 elif [[ "${var4}" == "n" ]]
 then
 	echo -e "\e[91mNot Enabling script at system startup\e[0m"
@@ -98,7 +89,6 @@ fi
 
 
 
-##### PREPARATION #####
 ### check for root privilges ###
 if [[ "${EUID}" != 0 ]]
 then
@@ -109,7 +99,6 @@ fi
 
 ### install autossh ###
 echo "Checking if autossh is installed..."
-
 if [[ $(dpkg-query --show --showformat='${Status}' autossh 2>/dev/null | grep --count "ok installed") == 0 ]];
 then
 	_var3func
@@ -118,57 +107,66 @@ else
 fi
 
 
-
-##### ACTUAL CODE #####
-### Clear current known hosts and Key-Pairs ###
+### clear current known hosts and key-pairs ###
 echo ""
 _var1func
+echo ""
 
 
-### Generate & Copy Key-Pair to a server ###
+### get server-ip, -ip and -ssh-port ###
+read -p $'\e[96mEnter the Domain/IP of the server to connect to: \e[0m' autossh_server_ip
+read -p $'\e[96mEnter the Username to the server to connect to: \e[0m' autossh_server_user
+read -p $'\e[96mEnter the SSH port to the server: \e[0m' autossh_server_port
+
+
+### generate & copy key-pair to a server ###
 echo ""
 _var2func
+echo ""
 
 
-### Finishing touches ###
-read -p $'\n\e[96mCustom ssh command to be used with autossh, if needed (e.g. "-R 8870:localhost:80") : \e[0m' var3custom
-read -p $'\e[96mName of the created script (e.g. Input "cloud" results in "autossh-cloud.service"): \e[0m' var3name
-echo -e "\e[92mSetting up scipt in /etc/systemd/system/autossh-"${var3name}".service...\e[0m"
+### finishing touches ###
+read -p $'\n\e[96mCustom ssh command to be used with autossh, if needed (e.g. "-R 8870:localhost:80") : \e[0m' autossh_custom_command
+read -p $'\e[96mName of the created script (e.g. Input "cloud" results in "autossh-cloud.service"): \e[0m' autossh_service_name
+echo -e "\e[92mSetting up scipt in /etc/systemd/system/autossh-"${autossh_service_name}".service...\e[0m"
 echo "[Unit]
-Description=Opens SSH Tunnel to "${varxserver}"
+Description=Opens SSH Tunnel to "${autossh_server_ip}"
 After=network.target
 
 [Service]
 Environment=\"AUTOSSH_GATETIME=0\"
-ExecStart=/usr/bin/autossh -M 0 -o \"ServerAliveInterval 30\" -o \"ServerAliveCountMax 3\" -N "${var3custom}" "${varxuser}"@"${varxserver}" -p "${varxport}" -i /root/.ssh/autossh_id_ecdsa
+ExecStart=/usr/bin/autossh -M 0 -o \"ServerAliveInterval 30\" -o \"ServerAliveCountMax 3\" -N "${autossh_custom_command}" "${autossh_server_user}"@"${autossh_server_ip}" -p "${autossh_server_port}" -i /root/.ssh/autossh_id_ecdsa
 
 [Install]
-WantedBy=multi-user.target" > /etc/systemd/system/autossh-"${var3name}".service
+WantedBy=multi-user.target" > /etc/systemd/system/autossh-"${autossh_service_name}".service
 
 
-### Adding ServerAliveInterval to config ###
+### adding "ServerAliveInterval" & "ServerAliveCountMax" to config ###
 echo -e "\e[96mAdding ServerAliveInterval to ssh config...\e[0m"
-(cat /etc/ssh/ssh_config | grep "^ *ServerAliveInterval [0-9]*$" || echo "
-### AUTO GENERATED CONFIG ADDITION BY autossh-setup.sh
+(cat /etc/ssh/ssh_config | grep "^ *ServerAliveInterval [0-9]*$" || echo "### AUTO GENERATED CONFIG ADDITION BY autossh-setup.sh ON <"$(date +"%T")">
 ServerAliveInterval 40
 ServerAliveCountMax 5" >> /etc/ssh/ssh_config)
 echo -e "\e[92mServerAliveInterval was added to ssh config\e[0m"
-echo -e "\e[96mRestarting ssh daemon...\e[0m"
+
+
+### applying config by reloading ssh service ###
+echo ""
+echo -e "\e[96mReloading ssh client...\e[0m"
 (service ssh reload || :)
 
 
-### Starting script ###
-echo -e "\n\e[92mStarting script...\e[0m"
+### starting script ###
+echo ""
+echo -e "\e[92mStarting script...\e[0m"
 systemctl daemon-reload
-service autossh-"${var3name}" start
-service autossh-"${var3name}" status
+service autossh-"${autossh_service_name}" start
+service autossh-"${autossh_service_name}" status
 
 
-### Enable script at startup ###
+### enable script at startup ###
 echo ""
 _var4func
 
 
-
-##### FINISHING #####
+### exiting ###
 echo -e "\n<$(date +"%T")> Finished\nExiting..."
