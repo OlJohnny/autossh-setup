@@ -8,14 +8,12 @@ set -o nounset
 
 
 
-##### GLOBAL VARIABLES #####
+### global variables ###
 autossh_server_ip="<SERVER NAME>"
 autossh_server_user="<USER NAME>"
 autossh_server_port="<SSH PORT>"
 
 
-
-##### FUNCTIONS #####
 ### loop question: clear known hosts ###
 _var1func(){
 read -p $'\e[96mClear current known hosts and Key-Pairs? (y|n): \e[0m' var1
@@ -56,7 +54,7 @@ fi
 
 ### loop question: install autossh ###
 _var3func(){
-read -p $'\e[96mDo you want to install autossh? (Errors can occur, when files are in the wrong format) (y|n): \e[0m' var1
+read -p $'\e[96mDo you want to install autossh? (Package is needed to complete the run of this script) (y|n): \e[0m' var1
 if [[ "${var1}" == "y" ]]
 then
 	echo -e "\e[92mInstalling autossh...\e[0m"
@@ -88,12 +86,11 @@ fi
 }
 
 
-
 ### check for root privilges ###
 if [[ "${EUID}" != 0 ]]
 then
-  echo -e "\e[91mPlease run as root.\e[39m Root privileges are needed to move and delete files"
-  exit
+	echo -e "\e[91mPlease run as root.\e[39m Root privileges are needed to move and delete files"
+	exit
 fi
 
 
@@ -128,7 +125,7 @@ echo ""
 ### finishing touches ###
 read -p $'\n\e[96mCustom ssh command to be used with autossh, if needed (e.g. "-R 8870:localhost:80") : \e[0m' autossh_custom_command
 read -p $'\e[96mName of the created script (e.g. Input "cloud" results in "autossh-cloud.service"): \e[0m' autossh_service_name
-echo -e "\e[92mSetting up scipt in /etc/systemd/system/autossh-"${autossh_service_name}".service...\e[0m"
+echo -e "\e[92mSetting up script in /etc/systemd/system/autossh-"${autossh_service_name}".service...\e[0m"
 echo "[Unit]
 Description=Opens SSH Tunnel to "${autossh_server_ip}"
 After=network.target
