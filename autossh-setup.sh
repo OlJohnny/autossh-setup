@@ -14,6 +14,13 @@ autossh_server_user="<USER NAME>"
 autossh_server_port="<SSH PORT>"
 
 
+### text output colors ###
+text_cyan="\e[96m"
+text_green="\e[96m"
+text_red="\e[91m"
+text_reset="\e[0m"
+
+
 ### loop question: clear known hosts ###
 _var1func(){
 read -p $'\e[96mClear current known hosts and Key-Pairs? (y|n): \e[0m' var1
@@ -166,4 +173,4 @@ _var4func
 
 
 ### exiting ###
-echo -e "\n<$(date +"%T")> Finished\nExiting..."
+echo -e ""${text_cyan}"\nFinished\nExiting..."${text_reset}""
