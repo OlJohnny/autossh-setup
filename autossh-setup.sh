@@ -132,8 +132,8 @@ _var2func
 
 ### finishing touches ###
 echo ""
-read -p ""${read_question}"Additional ssh options (e.g. "-R 8870:localhost:80"): "${read_reset}"" autossh_custom_command
-read -p ""${read_question}"Name of the created script (e.g. Input "cloud" results in "autossh-cloud.service"): "${read_reset}"" autossh_service_name
+read -p ""${read_question}"Additional ssh options (e.g. '-R 8870:localhost:80'): "${read_reset}"" autossh_custom_command
+read -p ""${read_question}"Name of the created script (e.g. Input 'cloud' results in 'autossh-cloud.service'): "${read_reset}"" autossh_service_name
 echo -e ""${text_info}"Setting up script in /etc/systemd/system/autossh-"${autossh_service_name}".service..."${text_reset}""
 echo "[Unit]
 Description=Maintains a SSH Tunnel to "${autossh_server_user}"@"${autossh_server_ip}":"${autossh_server_port}" for "${autossh_service_name}"
