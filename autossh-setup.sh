@@ -7,13 +7,13 @@ set -o nounset
 # set -o xtrace		# uncomment the previous statement for debugging
 
 
-### global variables ###
+# global variables
 autossh_server_ip="<SERVER NAME>"
 autossh_server_user="<USER NAME>"
 autossh_server_port="<SSH PORT>"
 
 
-### text output colors ###
+# text output colors
 text_info="\e[96m"
 text_yes="\e[92m"
 text_no="\e[91m"
@@ -22,13 +22,13 @@ read_question=$'\e[93m'
 read_reset=$'\e[0m'
 
 
-### loop question: clear known hosts ###
+# loop question: clear known hosts
 _var1func(){
-read -p ""${read_question}"Clear all ssh Known-Hosts and Key-Pairs? (y|n): "${read_reset}"" var1
+read --prompt ""${read_question}"Clear all ssh Known-Hosts and Key-Pairs? (y|n): "${read_reset}"" var1
 if [[ "${var1}" == "y" ]]
 then
 	echo -e ""${text_yes}"Clearing all ssh Known-Hosts and Key-Pairs..."${text_reset}""
-	rm -rf /root/.ssh
+	rm --recursive --force /root/.ssh
 elif [[ "${var1}" == "n" ]]
 then
 	echo -e ""${text_no}"Not clearing all ssh Known-Hosts and Key-Pairs"${text_reset}""
@@ -38,13 +38,13 @@ fi
 }
 
 
-### loop question: key-pair generation and copying ###
+# loop question: key-pair generation and copying
 _var2func(){
-read -p ""${read_question}"Generate & Copy a new Key-Pair to your server? (y|n): "${read_reset}"" var2
+read --prompt ""${read_question}"Generate & Copy a new Key-Pair to your server? (y|n): "${read_reset}"" var2
 if [[ "${var2}" == "y" ]]
 then
 	# generate key pair with: ECDSA, 384 bit and "Username@Server" as comment
-	ssh-keygen -f /root/.ssh/autossh_id_ecdsa -t ecdsa -b 384 -C "${autossh_server_user}"@"${autossh_server_ip}"
+	ssh-keygen --filename /root/.ssh/autossh_id_ecdsa -t ecdsa --bits 384 --comment "${autossh_server_user}"@"${autossh_server_ip}"
 	echo -e ""${text_yes}"Generating new Key-Pair (Hit 'Enter' for default values; Recommended)..."${text_reset}""
 	echo -e ""${text_yes}"Copying Key-Pair to your server..."${text_reset}""
 	# create ".ssh" in your home directory to prevent mktemp errors
@@ -60,9 +60,9 @@ fi
 }
 
 
-### loop question: install autossh ###
+# loop question: install autossh
 _var3func(){
-read -p ""${read_question}"Do you want to install autossh? (Needed to complete setup) (y|n): "${read_reset}"" var1
+read --prompt ""${read_question}"Do you want to install autossh? (Needed to complete setup) (y|n): "${read_reset}"" var1
 if [[ "${var1}" == "y" ]]
 then
 	echo -e ""${text_yes}"Installing autossh..."${text_reset}""
@@ -79,9 +79,9 @@ fi
 }
 
 
-### loop question: enable at system startup ###
+# loop question: enable at system startup
 _var4func(){
-read -p ""${read_question}"Enable script at system startup? (y|n): "${read_reset}"" var4
+read --prompt ""${read_question}"Enable script at system startup? (y|n): "${read_reset}"" var4
 if [[ "${var4}" == "y" ]]
 then
 	echo -e ""${text_yes}"Enabling script at system startup..."${text_reset}""
@@ -95,7 +95,7 @@ fi
 }
 
 
-### check for root privilges ###
+# check for root privilges
 if [[ "${EUID}" != 0 ]]
 then
 	echo -e ""${text_no}"Please run as root. Root privileges are needed to create and modify configurations/files"${text_reset}""
@@ -103,7 +103,7 @@ then
 fi
 
 
-### install autossh ###
+# install autossh
 echo -e ""${text_info}"Checking if autossh is installed..."${text_reset}""
 if [[ $(dpkg-query --show --showformat='${Status}' autossh 2>/dev/null | grep --count "ok installed") == 0 ]];
 then
@@ -113,27 +113,30 @@ else
 fi
 
 
-### clear current known-hosts and key-pairs ###
+# clear current known-hosts and key-pairs
 echo ""
 _var1func
 
 
-### get server-ip, -ssh-port and -user ###
+# get server-ip, -ssh-port and -user
 echo ""
-read -p ""${read_question}"Enter the Domain/IP of your server: "${read_reset}"" autossh_server_ip
-read -p ""${read_question}"Enter the SSH port to your server: "${read_reset}"" autossh_server_port
-read -p ""${read_question}"Enter the Username to your server: "${read_reset}"" autossh_server_user
+read --prompt ""${read_question}"Enter the Domain/IP of your server: "${read_reset}"" autossh_server_ip
+read --prompt ""${read_question}"Enter the SSH port to your server: "${read_reset}"" autossh_server_port
+read --prompt ""${read_question}"Enter the Username to your server: "${read_reset}"" autossh_server_user
 
 
-### generate & copy key-pair to a server ###
+# generate & copy key-pair to a server
 echo ""
 _var2func
 
 
-### finishing touches ###
+# get ssh options and name
 echo ""
-read -p ""${read_question}"Enter additional ssh options (e.g. '-R 8870:localhost:80'): "${read_reset}"" autossh_custom_command
-read -p ""${read_question}"Enter the name for the created script (e.g. 'cloud' => 'autossh-cloud.service'): "${read_reset}"" autossh_service_name
+read --prompt ""${read_question}"Enter additional ssh options (e.g. '-R 8870:localhost:80'): "${read_reset}"" autossh_custom_command
+read --prompt ""${read_question}"Enter the name for the created script (e.g. 'cloud' => 'autossh-cloud.service'): "${read_reset}"" autossh_service_name
+
+
+# set up service
 echo -e ""${text_info}"Setting up script in /etc/systemd/system/autossh-"${autossh_service_name}".service..."${text_reset}""
 echo "[Unit]
 Description=Maintains a SSH Tunnel to "${autossh_server_user}"@"${autossh_server_ip}":"${autossh_server_port}" for "${autossh_service_name}"
@@ -147,7 +150,7 @@ ExecStart=/usr/bin/autossh -M 0 -o \"ServerAliveInterval 30\" -o \"ServerAliveCo
 WantedBy=multi-user.target" > /etc/systemd/system/autossh-"${autossh_service_name}".service
 
 
-### adding "ServerAliveInterval" & "ServerAliveCountMax" to config ###
+# adding "ServerAliveInterval" & "ServerAliveCountMax" to config
 echo ""
 echo -e ""${text_info}"Adding 'ServerAliveInterval' to ssh client config..."${text_reset}""
 (cat /etc/ssh/ssh_config | grep "^ *ServerAliveInterval [0-9]*$" || echo "### AUTO GENERATED CONFIG ADDITION BY autossh-setup.sh ON $(date +"%Y.%m.%d %T")
@@ -156,13 +159,13 @@ ServerAliveCountMax 5" >> /etc/ssh/ssh_config)
 echo -e ""${text_info}"'ServerAliveInterval' was added to ssh client config"${text_reset}""
 
 
-### applying config by reloading ssh service ###
+# applying config by reloading ssh service
 echo ""
 echo -e ""${text_info}"Reloading ssh client to apply updated config..."${text_reset}""
 (service ssh reload || :)
 
 
-### starting script ###
+# starting script
 echo ""
 echo -e ""${text_info}"Starting script..."${text_reset}""
 systemctl daemon-reload
@@ -170,11 +173,11 @@ service autossh-"${autossh_service_name}" start
 service autossh-"${autossh_service_name}" status
 
 
-### enable script at startup ###
+# enable script at startup
 echo ""
 _var4func
 
 
-### exiting ###
+# exiting
 echo ""
 echo -e ""${text_info}"Finished\nExiting..."${text_reset}""
