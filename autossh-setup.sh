@@ -44,7 +44,7 @@ read -p ""${read_question}"Generate & Copy a new Key-Pair to your server? (y|n):
 if [[ "${var2}" == "y" ]]
 then
 	# generate key pair with: ECDSA, 384 bit and "Username@Server" as comment
-	ssh-keygen -f /root/.ssh/autossh_id_ecdsa -t ecdsa -b 384 -c "${autossh_server_user}"@"${autossh_server_ip}"
+	ssh-keygen -f /root/.ssh/autossh_id_ecdsa -t ecdsa -b 384 -C "${autossh_server_user}"@"${autossh_server_ip}"
 	echo -e ""${text_yes}"Generating new Key-Pair (Hit 'Enter' for default values; Recommended)..."${text_reset}""
 	echo -e ""${text_yes}"Copying Key-Pair to your server..."${text_reset}""
 	# create ".ssh" in your home directory to prevent mktemp errors
